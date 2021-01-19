@@ -27,20 +27,19 @@ app.post("/urls", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
   // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 
-  const shortURL = generateShortURL(6);          //Generates our new shortURL
-  urlDatabase[shortURL] = req.body.longURL;      //Adds it to our database
-  // console.log(urlDatabase);
+  const shortURL = generateShortURL(6);  //Generates our new shortURL
+  urlDatabase[shortURL] = req.body.longURL; //Adds to database
   res.redirect(`/urls/${shortURL}`);
 
 });
 
-app.get("/u/:shortURL", (req, res) => {
+app.get("/u/:shortURL", (req, res) => { //como surgiu a route /u/ ?
    const longURL = urlDatabase[req.params.shortURL];
    res.redirect(longURL);
 });
 
-app.get("/urls/:shortURL", (req, res) => { 
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }; ///pode estar errado
+app.get("/urls/:shortURL", (req, res) => { //para que serve o parametro ':shortURL?'
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }; 
   res.render("urls_show", templateVars);
 });
 
