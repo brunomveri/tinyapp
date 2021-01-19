@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
-function generateRandomString(length) {
+function generateShortURL(length) {
   return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
 
@@ -24,16 +24,21 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  // console.log(req.body);  // Log the POST request body to the console
+  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
+
+  const shortURL = generateShortURL(6);          //Generates our new shortURL
+  urlDatabase[shortURL] = req.body.longURL;      //Adds it to our database
+  console.log(urlDatabase);
+  res.redirect(`/urls/${shortURL}`);
+
 });
 
-app.get("/urls/:shortURL", (req, res) => {
+
+app.get("/urls/:shortURL", (req, res) => { 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }; ///pode estar errado
   res.render("urls_show", templateVars);
 });
-
-
 
 app.get("/", (req, res) => {
   res.send("Hello!");
