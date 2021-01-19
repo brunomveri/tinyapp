@@ -29,11 +29,15 @@ app.post("/urls", (req, res) => {
 
   const shortURL = generateShortURL(6);          //Generates our new shortURL
   urlDatabase[shortURL] = req.body.longURL;      //Adds it to our database
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 
 });
 
+app.get("/u/:shortURL", (req, res) => {
+   const longURL = urlDatabase[req.params.shortURL];
+   res.redirect(longURL);
+});
 
 app.get("/urls/:shortURL", (req, res) => { 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }; ///pode estar errado
