@@ -13,6 +13,10 @@ const deleteData = function(shortURL) { //function to remove existing shortened 
   delete urlDatabase[shortURL];
 };
 
+const updateData = function(newLongURL, shortURL) {
+  urlDatabase[shortURL] = newLongURL;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -37,38 +41,43 @@ app.post("/urls", (req, res) => {
 
   const shortURL = generateShortURL(6);  //Generates our new shortURL
   urlDatabase[shortURL] = req.body.longURL; //Adds to database
-  res.redirect(`/urls/${shortURL}`);
+  // res.redirect(`/urls/${shortURL}`);
+  res.redirect("/urls/");
 
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => { //implement a DELETE operation using POST
+app.post("/urls/:shortURL/delete", (req, res) => { //implement a DELETE
   deleteData(req.params.shortURL);
   const templateVars = { urls: urlDatabase };
-  // urlDatabase.deleteData(req.params.shortURL);
   res.render('urls_index', templateVars);
 });
 
-app.get("/u/:shortURL", (req, res) => { //como surgiu a route /u/ ?
+app.post("/urls/:shortURL/update", (req, res) => { //implement a UPDATE
+  // console.log(req.params.shortURL);
+
+  res.redirect(`/urls/${req.params.shortURL}`);
+  // updateData(req.params.shortURL);
+  // const templateVars = { urls: urlDatabase };
+  // res.render('urls_show', templateVars);
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  updateData(req.body.newURL, req.params.shortURL);
+  // console.log(urlDatabase);
+  res.redirect("/urls");
+});
+
+app.get("/u/:shortURL", (req, res) => { 
    const longURL = urlDatabase[req.params.shortURL];
    res.redirect(longURL);
 });
 
-app.get("/urls/:shortURL", (req, res) => { //para que serve o parametro ':shortURL?'
+app.get("/urls/:shortURL", (req, res) => { 
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] }; 
   res.render("urls_show", templateVars);
 });
 
 
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });
-
-// app.get("/url.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b><body></html>\n");
-// });
-
