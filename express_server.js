@@ -19,6 +19,7 @@ const updateData = function(newLongURL, shortURL) {
   urlDatabase[shortURL] = newLongURL;
 };
 
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -47,20 +48,34 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars)
 });
 
+//EMAIL LOOKUP HELPER FUNCTION
+const emailLookUp = function(email) {
+  for (let user in users) {
+    // console.log(users[user]);
+    if (email === users[user].email) {
+      return true;
+    }
+  }
+};
+
 //REGISTER submit handler
 app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.status(400);
+    res.send('Error 400');
+  } else if (emailLookUp(req.body.email)) {
+    res.status(400);
+    res.send('Error 400');
+  } else {
   const newID = generateRandomChar(6);
   users[newID] = {
     id: newID,
     email: req.body.email,
     password: req.body.password
   };
-  if (req.body.password === "") {
-    res.send("ERROR 400");
-  }
   res.cookie("user_id", newID);
-  // console.log(users);
   res.redirect("/urls");
+  }
 });
 
 app.get("/urls", (req, res) => {
