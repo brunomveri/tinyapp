@@ -106,32 +106,33 @@ app.post("/urls", (req, res) => {
 //   res.redirect('/urls');
 // });
 const idLookUp = function(email) {
+  console.log(email);
   for (let user in users) {
-    // console.log(users[user]);
     if (email === users[user].email) {
-      return users[user].id;
+      return users[user];
     }
   }
 };
 
 app.post("/login", (req, res) => { 
-  const username = req.body.email;
-  const userId = idLookUp(username);
-  if (!userId) {
+  const user = idLookUp(req.body.email);
+  console.log(user);
+  if (!user) {
     res.status(400);
     res.send('Error 400');
-  } else {
-    res.cookie("user_id", userId);
+  } else if (req.body.password === user.password) {
+    res.cookie("user_id", user.id);
     res.redirect('/urls');
+  } else {
+    res.status(400);
+    res.send('Error 400');
   }
 });
-
 
 app.get("/login", (req, res) => {
   const templateVars = { urls: urlDatabase, username: req.body.email };
   res.render('urls_login', templateVars);
 });
-
 
 //LOGOUT submit handler
 app.post("/logout", (req, res) => { 
