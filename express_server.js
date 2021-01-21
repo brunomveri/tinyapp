@@ -99,12 +99,39 @@ app.post("/urls", (req, res) => {
 
 });
 
-//LOGIN submit handler
+// //*****OLD*******LOGIN submit handler*********OLD//
+// app.post("/login", (req, res) => { 
+//   const username = req.body.username;
+//   res.cookie("username", username);  ///////OLD COOKIE
+//   res.redirect('/urls');
+// });
+const idLookUp = function(email) {
+  for (let user in users) {
+    // console.log(users[user]);
+    if (email === users[user].email) {
+      return users[user].id;
+    }
+  }
+};
+
 app.post("/login", (req, res) => { 
-  const username = req.body.username;
-  res.cookie("username", username);  ///////OLD COOKIE
-  res.redirect('/urls');
+  const username = req.body.email;
+  const userId = idLookUp(username);
+  if (!userId) {
+    res.status(400);
+    res.send('Error 400');
+  } else {
+    res.cookie("user_id", userId);
+    res.redirect('/urls');
+  }
 });
+
+
+app.get("/login", (req, res) => {
+  const templateVars = { urls: urlDatabase, username: req.body.email };
+  res.render('urls_login', templateVars);
+});
+
 
 //LOGOUT submit handler
 app.post("/logout", (req, res) => { 
@@ -115,7 +142,7 @@ app.post("/logout", (req, res) => {
 //DELETE submit handler
 app.post("/urls/:shortURL/delete", (req, res) => { 
   deleteData(req.params.shortURL);
-  const templateVars = { urls: urlDatabase, username: users[req.cookies["user_id"]] }; 
+  const templateVars = { urls: urlDatabase, username: users[req.cookies["user_id"]] };
   res.render('urls_index', templateVars);
 });
 
