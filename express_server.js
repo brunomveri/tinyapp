@@ -1,4 +1,4 @@
-const { getUserByEmail } = require('./helpers')
+const { getUserByEmail, generateRandomChar, urlsForUser } = require('./helpers')
 
 const express = require("express");
 const app = express();
@@ -13,30 +13,6 @@ app.use(cookieSession({
 }));
 app.set("view engine", "ejs");
 
-const generateRandomChar = function(length) {
-  return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
-};
-
-const deleteData = function(shortURL) {
-  delete urlDatabase[shortURL];
-};
-
-const updateData = function(newLongURL, shortURL) {
-  urlDatabase[shortURL].longURL = newLongURL;
-};
-
-const urlsForUser = function(id, database) {
-  const userUrls = {};
-  for (let shortURL in database) {
-    if (database[shortURL].userID === id) {
-      userUrls[shortURL] = { 
-        longURL: database[shortURL].longURL,
-        userID: id
-       };
-    }
-  }
-  return userUrls;
-};
 
 const urlDatabase = {
   // b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -155,7 +131,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     return;
   }
 
-  deleteData(req.params.shortURL);
+  delete urlDatabase[req.params.shortURL];
+
   const templateVars = { urls: urlDatabase, username: users[req.session.user_id] };
   res.render('urls_index', templateVars);
 });
@@ -178,8 +155,11 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
+
+
 app.post("/urls/:shortURL", (req, res) => {
-  updateData(req.body.newURL, req.params.shortURL);
+
+  urlDatabase[req.params.shortURL].longURL = req.body.newURL;
   res.redirect("/urls");
 });
 
