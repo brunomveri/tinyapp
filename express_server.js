@@ -2,9 +2,10 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser())
+app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const generateRandomChar = function(length) {
@@ -19,7 +20,7 @@ const deleteData = function(shortURL) {
 const updateData = function(newLongURL, shortURL) {
   urlDatabase[shortURL].longURL = newLongURL;
 };
-///////////////
+
 const urlsForUser = function(id, database /* req.cookies["user_id"]*/) {
   const userUrls = {};
   for (let shortURL in database) {
@@ -32,7 +33,7 @@ const urlsForUser = function(id, database /* req.cookies["user_id"]*/) {
   }
   return userUrls;
 };
-/////////////
+
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -76,6 +77,8 @@ const emailLookUp = function(email) {
 
 //REGISTER submit handler
 app.post("/register", (req, res) => {
+  const password = req.body.password; 
+  // console.log(password);
   if (req.body.email === "" || req.body.password === "") {
     res.status(400);
     res.send('Error 400');
@@ -83,15 +86,17 @@ app.post("/register", (req, res) => {
     res.status(400);
     res.send('Error 400');
   } else {
-  const newID = generateRandomChar(6);
-  users[newID] = {
-    id: newID,
-    email: req.body.email,
-    password: req.body.password
-  };
-  // console.log("users database", users);
-  res.cookie("user_id", newID);
-  res.redirect("/urls");
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    // console.log(hashedPassword);
+    const newID = generateRandomChar(6);
+    users[newID] = {
+      id: newID,
+      email: req.body.email,
+      password: hashedPassword
+    };
+    console.log("users database", users);
+    res.cookie("user_id", newID);
+    res.redirect("/urls");
   }
 });
 
@@ -116,7 +121,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomChar(6);  //Generates our new shortURL
   // urlDatabase[shortURL] = req.body.longURL; //Adds to database    ////vai precisar mudar pq o databse mudou de estrutrura
   urlDatabase[shortURL] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   // res.redirect(`/urls/${shortURL}`);
   res.redirect("/urls/");
 
@@ -129,7 +134,7 @@ app.post("/urls", (req, res) => {
 //   res.redirect('/urls');
 // });
 const idLookUp = function(email) {
-  console.log(email);
+  // console.log(email);
   for (let user in users) {
     if (email === users[user].email) {
       return users[user];
@@ -137,13 +142,16 @@ const idLookUp = function(email) {
   }
 };
 
-app.post("/login", (req, res) => { 
+app.post("/login", (req, res) => {
   const user = idLookUp(req.body.email);
-  console.log(user);
+  // console.log(user.password);
+  const doesPasswordsMatch = bcrypt.compareSync(req.body.password, user.password);
+  // console.log(doesPasswordsMatch);
+  // console.log(user);
   if (!user) {
     res.status(400);
     res.send('Error 400');
-  } else if (req.body.password === user.password) {
+  } else if (doesPasswordsMatch) {
     res.cookie("user_id", user.id);
     res.redirect('/urls');
   } else {
@@ -203,7 +211,7 @@ app.post("/urls/:shortURL/update", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  console.log(req.body.newURL);
+  // console.log(req.body.newURL);
   updateData(req.body.newURL, req.params.shortURL);
   res.redirect("/urls");
 });
@@ -218,12 +226,6 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const urlObject = urlDatabase[shortURL];
 
-
-
-  // const urlForUser = urlsForUser(userID, urlDatabase);
-  // const longURL = urlForUser[shortURL] && urlForUser[shortURL].longURL;
-  // const userCreatedURL = urlForUser[shortURL] && urlForUser[shortURL].userID === userID;
-
   if (!userID) {
     res.send("You are not logged in");
     return;
@@ -232,10 +234,7 @@ app.get("/urls/:shortURL", (req, res) => {
     res.send("You don't have access to this content");
     return;
   }
-  // if (!userCreatedURL) {
-  //   res.send("You don't have access to this content");
-  //   return;
-  // }
+ 
   const templateVars = { shortURL, longURL: urlObject.longURL, username: users[userID] }; 
   res.render("urls_show", templateVars);
   
