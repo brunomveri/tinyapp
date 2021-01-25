@@ -33,7 +33,8 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  // res.send("Hello!");
+  res.redirect("/urls");
 });
 
 //REGISTER
@@ -94,6 +95,7 @@ app.post("/login", (req, res) => {
     res.status(400);
     res.send('Invalid email. Please check if you typed your email correctly. If you are not registered, please register first');
   }
+  
   const doesPasswordsMatch = bcrypt.compareSync(req.body.password, user.password);
   if (doesPasswordsMatch) {
     req.session.user_id = user.id;
