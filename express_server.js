@@ -90,18 +90,19 @@ app.post("/urls", (req, res) => {
 
 app.post("/login", (req, res) => {
   const user = getUserByEmail(req.body.email, users);
-  const doesPasswordsMatch = bcrypt.compareSync(req.body.password, user.password);
-  
   if (!user) {
     res.status(400);
-    res.send('Error 400');
-  } else if (doesPasswordsMatch) {
+    res.send('Invalid email. Please check if you typed your email correctly. If you are not registered, please register first');
+  }
+  const doesPasswordsMatch = bcrypt.compareSync(req.body.password, user.password);
+  if (doesPasswordsMatch) {
     req.session.user_id = user.id;
     res.redirect('/urls');
   } else {
     res.status(400);
-    res.send('Error 400');
+    res.send('Password incorrect');
   }
+
 });
 
 app.get("/login", (req, res) => {
@@ -155,10 +156,7 @@ app.post("/urls/:shortURL/update", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
-
-
 app.post("/urls/:shortURL", (req, res) => {
-
   urlDatabase[req.params.shortURL].longURL = req.body.newURL;
   res.redirect("/urls");
 });
