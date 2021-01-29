@@ -4,7 +4,6 @@ const getUserByEmail = function(email, database) {
     return database[user];
   }
   return undefined;
-
 };
 
 const generateRandomChar = function(length) {
